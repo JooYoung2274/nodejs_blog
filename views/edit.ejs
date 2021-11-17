@@ -76,17 +76,28 @@
         let title = $("#writeTitle").val();
         let value = $("#writeValue").val();
         let name = $("#writeName").val();
+        let password = $("#writePassword").val();
         $.ajax({
           type: "POST",
           url: "/api/edit",
-          data: { postId: postId, title: title, value: value, name: name },
+          data: {
+            postId: postId,
+            title: title,
+            value: value,
+            name: name,
+            password: password,
+          },
           error: function (xhr, status, error) {
             if (status == 404) {
               alert("밤새자 주영아");
             }
           },
           success: function (response) {
-            window.location.href = "/";
+            if (response["result"] === "success") {
+              window.location.href = "/";
+            } else {
+              alert(response["result"]);
+            }
           },
         });
       }

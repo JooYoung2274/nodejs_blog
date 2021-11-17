@@ -1,18 +1,20 @@
 const express = require("express");
 const app = express();
 const port = 3000;
+const connect = require("./schemas");
+const lists = require("./routers/lists");
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static("public"));
 
-const connect = require("./schemas");
+//mongoDB연결
+
 connect();
 
 app.set("views", __dirname + "/views");
 app.set("view engine", "ejs");
 
-const lists = require("./routers/lists");
 app.use("/api", [lists]);
 
 app.get("/", (req, res) => {

@@ -1,6 +1,6 @@
 const express = require("express");
 
-const Lists = require("../schemas/Lists");
+const Lists = require("../schemas/lists");
 const router = express.Router();
 
 router.get("/lists", async (req, res, next) => {
@@ -30,12 +30,18 @@ router.post("/write", async (req, res) => {
 });
 
 router.post("/edit", async (req, res) => {
-  const { postId, title, value, name } = req.body;
-  await Lists.updateOne(
-    { postId },
-    { $set: { title: title, value: value, name: name } }
-  );
-  res.send({ result: "success" });
+  let { postId, title, value, name, password } = req.body;
+  let pass = await Lists.findOne({ postId });
+  password = parseInt(password, 10);
+  if (pass["password"] === password) {
+    await Lists.updateOne(
+      { postId },
+      { $set: { title: title, value: value, name: name } }
+    );
+    res.send({ result: "success" });
+  } else {
+    res.send({ result: "비밀번호가 틀립니다.." });
+  }
 });
 
 router.get("/edit/:postId", async (req, res) => {
