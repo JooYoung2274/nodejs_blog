@@ -55,14 +55,13 @@
 
       function get_detail() {
         // 주소에 저장해둔 postId값 가져와라
-
         $.ajax({
           type: "GET",
           url: `/api/detail/${postId}`,
           data: {},
           error: function (xhr, status, error) {
             if (status == 404) {
-              alert("밤새자 주영아");
+              alert("왜 404??ㅠㅠ 밤새자 주영아");
             }
           },
           success: function (response) {

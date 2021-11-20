@@ -21,10 +21,9 @@ router.post("/write", async (req, res) => {
   if (recentList.length !== 0) {
     postId = recentList[0]["postId"] + 1;
   }
-  console.log(req.body);
   const { title, name, value, password } = req.body;
+
   const writeDay = new Date().format("yyyy-MM-dd a/p hh:mm:ss");
-  console.log(writeDay);
   await Lists.create({ postId, title, name, value, password, writeDay });
   res.send({ result: "success" });
 });
@@ -58,7 +57,6 @@ router.get("/edit/:postId", async (req, res) => {
 router.get("/detail/:postId", async (req, res, next) => {
   try {
     const { postId } = req.params;
-    console.log(req.params);
     const list = await Lists.findOne({ postId });
     res.json({ list: list });
   } catch (err) {
@@ -72,7 +70,6 @@ router.delete("/delete/:postId", async (req, res) => {
   const { password } = req.body;
 
   const deleteList = await Lists.findOne({ postId });
-  console.log(deleteList.password);
   if (parseInt(password, 10) === deleteList.password) {
     await Lists.deleteOne({ postId });
     res.send({ result: "success" });

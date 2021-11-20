@@ -7,6 +7,7 @@ const connect = () => {
     mongoose.set("debug", true);
   }
 
+  //AWS 연결할때는 수정해야함.
   mongoose
     .connect("mongodb://localhost:27017/nodejs_blog", {
       useNewUrlParser: true,
