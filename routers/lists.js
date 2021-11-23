@@ -1,7 +1,9 @@
 const express = require("express");
-
+const Users = require("../schemas/user");
 const Lists = require("../schemas/lists");
 const router = express.Router();
+const Joi = require("joi");
+const jwt = require("jsonwebtoken");
 
 router.get("/lists", async (req, res, next) => {
   try {
@@ -76,6 +78,65 @@ router.delete("/delete/:postId", async (req, res) => {
   } else {
     res.send({ result: "비밀번호가 틀렸습니다.. " });
   }
+});
+
+////////////////////////////////////
+// 회원가입
+
+const regiserSchema = Joi.object({
+  name: Joi.string().alphanum().min(3).max(30).required(),
+  password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{4,30}$")).required(),
+  confirmPassword: Joi.string().required(),
+  email: Joi.string()
+    .email({
+      minDomainSegments: 2,
+      tlds: { allow: ["com", "net"] },
+    })
+    .required(),
+});
+router.post("/users", async (req, res) => {
+  try {
+    const { name, email, password, confirmPassword } =
+      await regiserSchema.validateAsync(req.body);
+    if (password !== confirmPassword) {
+      res.status(400).send({
+        errorMessage: "패스워드 입력이 올바르지 않습니다.",
+      });
+      return;
+    }
+    const isUser = await Users.find({
+      $or: [{ email }, { name }],
+    });
+    if (isUser.length) {
+      res.status(400).send({
+        errorMessage: "이미 가입된 이메일 또는 닉네임이 있습니다.",
+      });
+      return;
+    }
+    const user = new Users({ email, name, password });
+    await user.save();
+    res.status(201).send({});
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({
+      errorMessage: "입력된 정보가 틀립니다",
+    });
+  }
+});
+
+router.post("/auth", async (req, res) => {
+  const { email, password } = req.body;
+  const isUser = await Users.findOne({ email, password });
+
+  if (!isUser) {
+    res.status(400).send({
+      errorMessage: "닉네임 또는 패스워드를 확인해주세요",
+    });
+    return;
+  }
+  const token = jwt.sign({ userId: isUser.userId }, "182436aajo");
+  console.log(token);
+  res.send({ token });
 });
 
 Date.prototype.format = function (f) {
