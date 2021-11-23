@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+const User = require("../schemas/user");
 
 module.exports = (req, res, next) => {
   console.log("auth middleware!!");
@@ -18,6 +18,7 @@ module.exports = (req, res, next) => {
     User.findById(userId)
       .exec()
       .then((user) => {
+        console.log(user);
         res.locals.user = user;
         next();
       });

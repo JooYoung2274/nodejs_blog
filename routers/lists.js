@@ -4,6 +4,7 @@ const Lists = require("../schemas/lists");
 const router = express.Router();
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
+const authMiddleware = require("../middlewares/auth-middleware");
 
 router.get("/lists", async (req, res, next) => {
   try {
@@ -23,6 +24,7 @@ router.post("/write", async (req, res) => {
   if (recentList.length !== 0) {
     postId = recentList[0]["postId"] + 1;
   }
+
   const { title, name, value, password } = req.body;
 
   const writeDay = new Date().format("yyyy-MM-dd a/p hh:mm:ss");
@@ -137,6 +139,11 @@ router.post("/auth", async (req, res) => {
   const token = jwt.sign({ userId: isUser.userId }, "182436aajo");
   console.log(token);
   res.send({ token });
+});
+
+router.get("/users/me", authMiddleware, async (req, res) => {
+  const { user } = res.locals;
+  res.send({ user });
 });
 
 Date.prototype.format = function (f) {

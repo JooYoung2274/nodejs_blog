@@ -52,19 +52,28 @@
         let name = $("#writeName").val();
         let password = $("#writePassword").val();
 
-        $.ajax({
-          type: "POST",
-          url: "/api/write",
-          data: {
-            value: val,
-            title: title,
-            name: name,
-            password: password,
-          },
-          success: function (response) {
-            window.location.href = "/";
-          },
-        });
+        if (
+          val.length !== 0 &&
+          title.length !== 0 &&
+          name.length !== 0 &&
+          password.length !== 0
+        ) {
+          $.ajax({
+            type: "POST",
+            url: "/api/write",
+            data: {
+              value: val,
+              title: title,
+              name: name,
+              password: password,
+            },
+            success: function (response) {
+              window.location.href = "/";
+            },
+          });
+        } else {
+          alert("빈칸이 있습니다")
+        }
       }
     </script>
 

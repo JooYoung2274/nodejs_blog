@@ -48,7 +48,23 @@
     <script>
       $(document).ready(function () {
         get_lists();
+        loginBtn();
       });
+
+      function loginBtn() {
+        if (localStorage.getItem("token")) {
+          $("#loginBtn").text("로그아웃");
+        }
+      }
+
+      function logInOut() {
+        if (localStorage.getItem("token")) {
+          localStorage.clear();
+          location.reload();
+        } else {
+          window.location.href = "/login";
+        }
+      }
 
       function get_lists() {
         $.ajax({
@@ -83,6 +99,9 @@
       html {
         overflow: auto;
       }
+      .nav-link {
+        display: inline;
+      }
     </style>
   </head>
 
@@ -116,6 +135,7 @@
       >
         <ul class="navbar-nav mr-auto text-right">
           <li class="nav-item" id="link-cart">
+            <button id="loginBtn" onclick="logInOut()">로그인</button>
             <a class="nav-link" href="/write"> 글쓰기 </a>
           </li>
         </ul>
