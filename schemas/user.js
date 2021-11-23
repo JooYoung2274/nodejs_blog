@@ -4,7 +4,6 @@ const { Schema } = mongoose;
 const UsersSchema = new Schema({
   name: String,
   password: String,
-  email: String,
 });
 
 UsersSchema.virtual("userId").get(function () {

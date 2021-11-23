@@ -89,33 +89,29 @@ const regiserSchema = Joi.object({
   name: Joi.string().alphanum().min(3).max(30).required(),
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{4,30}$")).required(),
   confirmPassword: Joi.string().required(),
-  email: Joi.string()
-    .email({
-      minDomainSegments: 2,
-      tlds: { allow: ["com", "net"] },
-    })
-    .required(),
 });
 router.post("/users", async (req, res) => {
   try {
-    const { name, email, password, confirmPassword } =
+    const { name, password, confirmPassword } =
       await regiserSchema.validateAsync(req.body);
-    if (password !== confirmPassword) {
+
+    const passArr = password.split(name); //password와 nickname 확인하기 위해서 배열화
+    if (password !== confirmPassword || passArr.length !== 1) {
+      //안겹치면 무조건 길이는 1개
       res.status(400).send({
         errorMessage: "패스워드 입력이 올바르지 않습니다.",
       });
       return;
     }
-    const isUser = await Users.find({
-      $or: [{ email }, { name }],
-    });
+
+    const isUser = await Users.find({ name });
     if (isUser.length) {
       res.status(400).send({
-        errorMessage: "이미 가입된 이메일 또는 닉네임이 있습니다.",
+        errorMessage: "중복된 닉네임입니다.",
       });
       return;
     }
-    const user = new Users({ email, name, password });
+    const user = new Users({ name, password });
     await user.save();
     res.status(201).send({});
   } catch (error) {

@@ -59,10 +59,10 @@
             <input
               type="text"
               class="form-control"
-              placeholder="아이디"
+              placeholder="닉네임"
               aria-label="Username"
               aria-describedby="basic-addon1"
-              id="inputEmail"
+              id="inputName"
             />
           </div>
           <div class="input-group mb-3">
@@ -163,13 +163,13 @@
       }
 
       function sign_in() {
-        let email = $("#inputEmail").val();
+        let nickname = $("#inputName").val();
         let password = $("#inputPassword").val();
         $.ajax({
           type: "POST",
           url: "/api/auth",
           data: {
-            email: email,
+            name: nickname,
             password: password,
           },
           success: function (response) {
