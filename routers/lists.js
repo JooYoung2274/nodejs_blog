@@ -76,7 +76,7 @@ router.get("/detail/:postId", async (req, res, next) => {
   }
 });
 
-router.delete("/delete/:postId", authMiddleware, async (req, res) => {
+router.delete("/delete/:postId", async (req, res) => {
   const { postId } = req.params;
   const { password } = req.body;
 
@@ -136,6 +136,12 @@ router.get("/edit/comment/:commentId", authMiddleware, async (req, res) => {
   } else {
     res.status(200).send({});
   }
+});
+
+router.post("/save/comment", async (req, res) => {
+  const { postId, commentId, comment } = req.body;
+  await Comments.updateOne({ commentId }, { $set: { comment: comment } });
+  res.status(200).send({});
 });
 
 ////////////////////////////////////////////
