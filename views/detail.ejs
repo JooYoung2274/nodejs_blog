@@ -50,8 +50,25 @@
       const postId = urlParams.get("postId");
 
       $(document).ready(function () {
+        loginBtn();
         get_detail();
+        get_comment();
       });
+
+      function loginBtn() {
+        if (localStorage.getItem("token")) {
+          $("#loginBtn").text("로그아웃");
+        }
+      }
+
+      function logInOut() {
+        if (localStorage.getItem("token")) {
+          localStorage.clear();
+          location.reload();
+        } else {
+          window.location.href = "/login";
+        }
+      }
 
       function get_detail() {
         // 주소에 저장해둔 postId값 가져와라
@@ -73,21 +90,164 @@
             let postId = lists["postId"];
 
             let temp_html = `<li class="list-group-item">
-                                <h4>${title}</h4>
-                                <p>내용 : ${value}</p>
-                                <p>작성 날짜 : ${writeDay}</p>
-                                <p>작성자 : ${name}</p>
-                                <button onclick="window.location.href='/edit?postId=${postId}'"> 수정하기 </button>
-                              </li>`;
+                                    <h4>${title}</h4>
+                                    <p>내용 : ${value}</p>
+                                    <p>작성 날짜 : ${writeDay}</p>
+                                    <p>작성자 : ${name}</p>
+                                    <button onclick="window.location.href='/edit?postId=${postId}'"> 수정하기 </button>
+                                  </li>`;
 
             $("#tempId").append(temp_html);
           },
         });
       }
+
+      function loginCheck() {
+        if (!localStorage.getItem("token")) {
+          alert("로그인 해주세요!");
+        }
+      }
+
+      function writeComment() {
+        if (!localStorage.getItem("token")) {
+          alert("로그인이 필요한 기능입니다!");
+          window.location.href = "/login";
+          return;
+        }
+        const comment = $("#comment").val();
+        if (comment === "") {
+          alert("댓글 내용을 입력해주세요");
+        } else {
+          $.ajax({
+            type: "POST",
+            url: "/api/comment",
+            data: {
+              comment: comment,
+              postId: postId,
+            },
+            headers: {
+              authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            success: function (response) {
+              window.location.reload();
+            },
+          });
+        }
+      }
+
+      function get_comment() {
+        // 주소에 저장해둔 postId값 가져와라
+        $.ajax({
+          type: "GET",
+          url: `/api/comment/${postId}`,
+          data: {},
+          error: function (xhr, status, error) {
+            if (status == 404) {
+              alert("왜 404??ㅠㅠ 밤새자 주영아");
+            }
+          },
+          success: function (response) {
+            let arr = response["result"];
+            for (let i = arr.length - 1; i >= 0; i--) {
+              let name = response["result"][i]["name"];
+              let comment = response["result"][i]["comment"];
+              let commentId = response["result"][i]["commentId"];
+              console.log(name);
+
+              let temp_html = `<tr>
+                                    <td scope="col">${name}</td>
+                                    <td scope="col" id="hideBox">${comment}</td>
+                                    <td colspan="2" style="display: none" id="editBox">
+                                      <div id="commentDiv32" class="input-group mb-3">
+                                        <input
+                                          id="commentInput32"
+                                          type="text"
+                                          class="form-control"
+                                          aria-label="Recipient's username"
+                                          aria-describedby="basic-addon2"
+                                        />
+                                        <div class="input-group-append">
+                                          <button
+                                            class="btn btn-outline-secondary"
+                                            type="button"
+                                            onclick="editCommentConfirm('${name}', '${postId}', '${commentId}')"
+                                          >
+                                            저장
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td id="btns">
+                                      <button id="editBtn" onclick="editComment('${commentId}')">수정</button>
+                                      <button id="deleteBtn" onclick="deleteComment('${name}', '${postId}', '${commentId}')">삭제</button>
+                                      </td>
+                                  </tr>`;
+              $("#commentTableBody").append(temp_html);
+            }
+          },
+        });
+      }
+
+      function editComment(c) {
+        $.ajax({
+          type: "GET",
+          url: `/api/edit/comment/${c}`,
+          data: {},
+          headers: {
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          success: function (response) {
+            if (response["result"] === "fail") {
+              alert("권한이 없음");
+            } else {
+              document.getElementById("editBox").style.display = "";
+              document.getElementById("btns").style.display = "none";
+              document.getElementById("hideBox").style.display = "none";
+            }
+          },
+        });
+      }
+
+      // postId는 필요없어보이는데..? 일단 냅두고 나중에 수정해보기
+      function deleteComment(a, b, c) {
+        if (confirm("정말로 삭제하시겠습니까?") === true) {
+          $.ajax({
+            type: "DELETE",
+            url: `/api/delete/comment/${c}`,
+            data: {
+              name: a,
+              postId: b,
+            },
+            headers: {
+              authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            success: function (response) {
+              if (response["result"] === "fail") {
+                alert("권한이 없음");
+              } else {
+                window.location.reload();
+              }
+            },
+          });
+        } else {
+          return;
+        }
+      }
     </script>
     <style>
       html {
         overflow: auto;
+      }
+      .nav-link {
+        display: inline;
+      }
+      #editBtn,
+      #deleteBtn {
+        display: inline;
+        background-color: brown;
+        color: white;
+        border: 1px solid brown;
+        border-radius: 10px;
       }
     </style>
   </head>
@@ -123,11 +283,43 @@
       >
         <ul class="navbar-nav mr-auto text-right">
           <li class="nav-item" id="link-cart">
+            <button id="loginBtn" onclick="logInOut()">로그인</button>
             <a class="nav-link" href="/write"> 글쓰기 </a>
           </li>
         </ul>
       </div>
     </nav>
     <ul class="list-group" id="tempId"></ul>
+    <div class="input-group mb-3" id="commentWriteBody">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon1">Comment</span>
+      </div>
+      <input
+        type="text"
+        class="form-control"
+        aria-label="Username"
+        aria-describedby="basic-addon1"
+        id="comment"
+        onclick="loginCheck()"
+      />
+      <button type="button" class="btn btn-primary" onclick="writeComment()">
+        작성
+      </button>
+    </div>
+    <table class="table">
+      <thead class="thead-light"></thead>
+      <colgroup>
+        <col style="width: 10%" />
+        <col style="width: 70%" />
+        <col style="width: 20%" />
+      </colgroup>
+
+      <tbody id="commentTableBody">
+        <tr>
+          <td scope="col">닉네임</td>
+          <td scope="col">댓글</td>
+        </tr>
+      </tbody>
+    </table>
   </body>
 </html>

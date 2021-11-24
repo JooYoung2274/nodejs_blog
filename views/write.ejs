@@ -49,30 +49,26 @@
       function writeList() {
         let val = $("#writeValue").val();
         let title = $("#writeTitle").val();
-        let name = $("#writeName").val();
         let password = $("#writePassword").val();
 
-        if (
-          val.length !== 0 &&
-          title.length !== 0 &&
-          name.length !== 0 &&
-          password.length !== 0
-        ) {
+        if (val.length !== 0 && title.length !== 0 && password.length !== 0) {
           $.ajax({
             type: "POST",
             url: "/api/write",
             data: {
               value: val,
               title: title,
-              name: name,
               password: password,
+            },
+            headers: {
+              authorization: `Bearer ${localStorage.getItem("token")}`,
             },
             success: function (response) {
               window.location.href = "/";
             },
           });
         } else {
-          alert("빈칸이 있습니다")
+          alert("빈칸이 있습니다");
         }
       }
     </script>
@@ -129,8 +125,6 @@
               <input type="text" class="form-control" id="writeTitle" />
               <label>내용</label>
               <input type="text" class="form-control" id="writeValue" />
-              <label>글쓴이</label>
-              <input type="text" class="form-control" id="writeName" />
             </div>
             <input type="password" placeholder="password" id="writePassword" />
             <button

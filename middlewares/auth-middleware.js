@@ -15,11 +15,14 @@ module.exports = (req, res, next) => {
 
   try {
     const { userId } = jwt.verify(tokenValue, "182436aajo");
+
     User.findById(userId)
       .exec()
       .then((user) => {
-        console.log(user);
+        console.log("1console", user);
         res.locals.user = user;
+        console.log("2console", res.locals);
+
         next();
       });
   } catch (error) {

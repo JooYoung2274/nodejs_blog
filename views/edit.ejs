@@ -49,35 +49,10 @@
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
       const postId = urlParams.get("postId");
+
       $(document).ready(function () {
-        getSelf(function (x) {
-          user = x;
-        });
         clickList();
       });
-
-      function getSelf(callback) {
-        $.ajax({
-          type: "GET",
-          url: "/api/users/me",
-          headers: {
-            authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          success: function (response) {
-            callback(response.user);
-          },
-          error: function (xhr, status, error) {
-            if (xhr.status === 401) {
-              alert("로그인이 필요합니다.");
-              window.location.href = "/login";
-            } else {
-              localStorage.clear();
-              alert("알 수 없는 문제가 발생했습니다. 관리자에게 문의하세요.");
-              window.location.href = "/";
-            }
-          },
-        });
-      }
 
       function clickList() {
         $.ajax({
@@ -93,7 +68,6 @@
             console.log(response["list"]);
             $("#writeTitle").val(response["list"]["title"]);
             $("#writeValue").val(response["list"]["value"]);
-            $("#writeName").val(response["list"]["name"]);
           },
         });
       }
@@ -101,7 +75,6 @@
       function editList() {
         let title = $("#writeTitle").val();
         let value = $("#writeValue").val();
-        let name = $("#writeName").val();
         let password = $("#writePassword").val();
         $.ajax({
           type: "POST",
@@ -110,8 +83,10 @@
             postId: postId,
             title: title,
             value: value,
-            name: name,
             password: password,
+          },
+          headers: {
+            authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           error: function (xhr, status, error) {
             if (status == 404) {
@@ -203,8 +178,6 @@
               <input type="text" class="form-control" id="writeTitle" />
               <label>내용</label>
               <input type="text" class="form-control" id="writeValue" />
-              <label>글쓴이</label>
-              <input type="text" class="form-control" id="writeName" />
             </div>
             <input type="password" placeholder="password" id="writePassword" />
             <button

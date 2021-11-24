@@ -1,6 +1,7 @@
 const express = require("express");
 const Users = require("../schemas/user");
 const Lists = require("../schemas/lists");
+const Comments = require("../schemas/comment");
 const router = express.Router();
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
@@ -17,7 +18,10 @@ router.get("/lists", async (req, res, next) => {
   }
 });
 
-router.post("/write", async (req, res) => {
+router.post("/write", authMiddleware, async (req, res) => {
+  const { user } = res.locals;
+  console.log(user);
+  const name = user["name"];
   const recentList = await Lists.find().sort("-postId").limit(1);
   let postId = 1;
 
@@ -25,25 +29,28 @@ router.post("/write", async (req, res) => {
     postId = recentList[0]["postId"] + 1;
   }
 
-  const { title, name, value, password } = req.body;
+  const { title, value, password } = req.body;
 
   const writeDay = new Date().format("yyyy-MM-dd a/p hh:mm:ss");
   await Lists.create({ postId, title, name, value, password, writeDay });
   res.send({ result: "success" });
 });
 
-router.post("/edit", async (req, res) => {
-  let { postId, title, value, name, password } = req.body;
+router.post("/edit", authMiddleware, async (req, res) => {
+  const { user } = res.locals;
+  console.log(user);
+  let { postId, title, value, password } = req.body;
   let pass = await Lists.findOne({ postId });
   password = parseInt(password, 10);
-  if (pass["password"] === password) {
-    await Lists.updateOne(
-      { postId },
-      { $set: { title: title, value: value, name: name } }
-    );
+  if (pass["password"] === password && user["name"] === pass["name"]) {
+    await Lists.updateOne({ postId }, { $set: { title: title, value: value } });
     res.send({ result: "success" });
-  } else {
+  } else if (pass["password"] !== password && user["name"] === pass["name"]) {
     res.send({ result: "비밀번호가 틀립니다.." });
+  } else if (pass["password"] === password && user["name"] !== pass["name"]) {
+    res.send({ result: "잘못된 접근입니다." });
+  } else {
+    res.send({ result: "잘못된 접근입니다." });
   }
 });
 
@@ -69,7 +76,7 @@ router.get("/detail/:postId", async (req, res, next) => {
   }
 });
 
-router.delete("/delete/:postId", async (req, res) => {
+router.delete("/delete/:postId", authMiddleware, async (req, res) => {
   const { postId } = req.params;
   const { password } = req.body;
 
@@ -82,10 +89,59 @@ router.delete("/delete/:postId", async (req, res) => {
   }
 });
 
-////////////////////////////////////
-// 회원가입
+router.post("/comment", authMiddleware, async (req, res) => {
+  const { user } = res.locals;
+  const name = user.name;
+  const { postId, comment } = req.body;
+  const recentComment = await Comments.find().sort("-commentId").limit(1);
+  let commentId = 1;
 
-const regiserSchema = Joi.object({
+  if (recentComment.length !== 0) {
+    commentId = recentComment[0]["commentId"] + 1;
+  }
+
+  const comments = new Comments({ name, postId, comment, commentId });
+  await comments.save();
+  res.status(201).send({});
+});
+
+router.get("/comment/:postId", async (req, res) => {
+  const { postId } = req.params;
+  const commentList = await Comments.find({ postId });
+  res.status(201).send({ result: commentList });
+});
+
+router.delete(
+  "/delete/comment/:commentId",
+  authMiddleware,
+  async (req, res) => {
+    const { user } = res.locals;
+    const { name, postId } = req.body;
+    const { commentId } = req.params;
+    console.log(commentId);
+    if (name !== user.name) {
+      res.send({ result: "fail" });
+    } else {
+      await Comments.deleteOne({ commentId, postId });
+      res.status(200).send({});
+    }
+  }
+);
+router.get("/edit/comment/:commentId", authMiddleware, async (req, res) => {
+  const { user } = res.locals;
+  const { commentId } = req.params;
+  const commentList = await Comments.findOne({ commentId });
+  if (user.name !== commentList.name) {
+    res.send({ result: "fail" });
+  } else {
+    res.status(200).send({});
+  }
+});
+
+////////////////////////////////////////////
+// 회원가입
+///////////////////////////////////////////
+const registerSchema = Joi.object({
   name: Joi.string().alphanum().min(3).max(30).required(),
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{4,30}$")).required(),
   confirmPassword: Joi.string().required(),
@@ -93,7 +149,7 @@ const regiserSchema = Joi.object({
 router.post("/users", async (req, res) => {
   try {
     const { name, password, confirmPassword } =
-      await regiserSchema.validateAsync(req.body);
+      await registerSchema.validateAsync(req.body);
 
     const passArr = password.split(name); //password와 nickname 확인하기 위해서 배열화
     if (password !== confirmPassword || passArr.length !== 1) {
@@ -123,8 +179,8 @@ router.post("/users", async (req, res) => {
 });
 
 router.post("/auth", async (req, res) => {
-  const { email, password } = req.body;
-  const isUser = await Users.findOne({ email, password });
+  const { name, password } = req.body;
+  const isUser = await Users.findOne({ name, password });
 
   if (!isUser) {
     res.status(400).send({
@@ -139,6 +195,7 @@ router.post("/auth", async (req, res) => {
 
 router.get("/users/me", authMiddleware, async (req, res) => {
   const { user } = res.locals;
+
   res.send({ user });
 });
 
