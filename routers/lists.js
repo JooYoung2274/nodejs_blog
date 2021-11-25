@@ -1,10 +1,9 @@
 const express = require("express");
-const Users = require("../schemas/user");
+const jwt = require("jsonwebtoken");
 const Lists = require("../schemas/lists");
 const Comments = require("../schemas/comment");
 const router = express.Router();
-const Joi = require("joi");
-const jwt = require("jsonwebtoken");
+
 const authMiddleware = require("../middlewares/auth-middleware");
 
 router.get("/lists", async (req, res, next) => {
@@ -35,6 +34,7 @@ router.post("/write", authMiddleware, async (req, res) => {
 
 router.post("/edit", authMiddleware, async (req, res) => {
   const { user } = res.locals;
+  console.log(user);
   let { postId, title, value, password } = req.body;
   let pass = await Lists.findOne({ postId });
   password = parseInt(password, 10);
@@ -51,19 +51,17 @@ router.post("/edit", authMiddleware, async (req, res) => {
 });
 
 router.get("/editCheck/:editPostId", authMiddleware, async (req, res) => {
-  try {
-    const { user } = res.locals;
-    console.log(user);
-    const { editPostId } = req.params;
-    let name = user.name;
-    const list = await Lists.findOne({ editPostId });
-    if (name === user.name) {
-      res.status(200).send({});
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(400).send({
-      errorMessage: "입력된 정보가 틀립니다",
+  const { user } = res.locals;
+
+  const { editPostId } = req.params;
+  console.log(editPostId);
+  let name = user.name;
+  const list = await Lists.findOne({ postId: editPostId });
+  if (list.name === name) {
+    res.status(200).send({});
+  } else {
+    res.status(401).send({
+      errorMessage: "로그인이 필요합니다.",
     });
   }
 });
@@ -107,122 +105,6 @@ router.delete("/delete/:postId", authMiddleware, async (req, res) => {
   } else {
     res.send({ result: "비밀번호가 틀렸습니다.. " });
   }
-});
-
-router.post("/comment", authMiddleware, async (req, res) => {
-  const { user } = res.locals;
-  const name = user.name;
-  const { postId, comment } = req.body;
-  const recentComment = await Comments.find().sort("-commentId").limit(1);
-  let commentId = 1;
-
-  if (recentComment.length !== 0) {
-    commentId = recentComment[0]["commentId"] + 1;
-  }
-
-  const comments = new Comments({ name, postId, comment, commentId });
-  await comments.save();
-  res.status(201).send({});
-});
-
-router.get("/comment/:postId", async (req, res) => {
-  const { postId } = req.params;
-  const commentList = await Comments.find({ postId });
-  res.status(201).send({ result: commentList });
-});
-
-router.delete(
-  "/delete/comment/:commentId",
-  authMiddleware,
-  async (req, res) => {
-    const { user } = res.locals;
-    const { name, postId } = req.body;
-    const { commentId } = req.params;
-    console.log(commentId);
-    if (name !== user.name) {
-      res.send({ result: "fail" });
-    } else {
-      await Comments.deleteOne({ commentId, postId });
-      res.status(200).send({});
-    }
-  }
-);
-router.get("/edit/comment/:commentId", authMiddleware, async (req, res) => {
-  const { user } = res.locals;
-  const { commentId } = req.params;
-  const commentList = await Comments.findOne({ commentId });
-  if (user.name !== commentList.name) {
-    res.send({ result: "fail" });
-  } else {
-    res.status(200).send({});
-  }
-});
-
-router.post("/save/comment", async (req, res) => {
-  const { postId, commentId, comment } = req.body;
-  await Comments.updateOne({ commentId }, { $set: { comment: comment } });
-  res.status(200).send({});
-});
-
-////////////////////////////////////////////
-// 회원가입
-////////////////////////////////////////////
-const registerSchema = Joi.object({
-  name: Joi.string().alphanum().min(3).max(30).required(),
-  password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{4,30}$")).required(),
-  confirmPassword: Joi.string().required(),
-});
-router.post("/users", async (req, res) => {
-  try {
-    const { name, password, confirmPassword } =
-      await registerSchema.validateAsync(req.body);
-
-    const passArr = password.split(name); //password와 nickname 확인하기 위해서 배열화
-    if (password !== confirmPassword || passArr.length !== 1) {
-      //안겹치면 무조건 길이는 1개
-      res.status(400).send({
-        errorMessage: "패스워드 입력이 올바르지 않습니다.",
-      });
-      return;
-    }
-
-    const isUser = await Users.find({ name });
-    if (isUser.length) {
-      res.status(400).send({
-        errorMessage: "중복된 닉네임입니다.",
-      });
-      return;
-    }
-    const user = new Users({ name, password });
-    await user.save();
-    res.status(201).send({});
-  } catch (error) {
-    console.log(error);
-    res.status(400).send({
-      errorMessage: "입력된 정보가 틀립니다",
-    });
-  }
-});
-
-router.post("/auth", async (req, res) => {
-  const { name, password } = req.body;
-  const isUser = await Users.findOne({ name, password });
-
-  if (!isUser) {
-    res.status(400).send({
-      errorMessage: "닉네임 또는 패스워드를 확인해주세요",
-    });
-    return;
-  }
-  const token = jwt.sign({ userId: isUser.userId }, "182436aajo");
-  console.log(token);
-  res.send({ token });
-});
-
-router.get("/users/me", authMiddleware, async (req, res) => {
-  const { user } = res.locals;
-
-  res.send({ user });
 });
 
 Date.prototype.format = function (f) {

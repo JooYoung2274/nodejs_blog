@@ -44,6 +44,7 @@
 
     <link href="/static/mystyle.css" rel="stylesheet" />
     <title>JOO 블로그</title>
+    <script src="/static/loginOut.js"></script>
     <script>
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
@@ -54,21 +55,6 @@
         get_detail();
         get_comment();
       });
-
-      function loginBtn() {
-        if (localStorage.getItem("token")) {
-          $("#loginBtn").text("로그아웃");
-        }
-      }
-
-      function logInOut() {
-        if (localStorage.getItem("token")) {
-          localStorage.clear();
-          location.reload();
-        } else {
-          window.location.href = "/login";
-        }
-      }
 
       function get_detail() {
         // 주소에 저장해둔 postId값 가져와라
@@ -209,7 +195,13 @@
           },
         });
       }
-
+      function writePage() {
+        if (localStorage.getItem("token")) {
+          window.location.href = "/write";
+        } else {
+          alert("로그인하세요!");
+        }
+      }
       function editComment(c) {
         console.log(c);
         $.ajax({
@@ -325,7 +317,7 @@
         <ul class="navbar-nav mr-auto text-right">
           <li class="nav-item" id="link-cart">
             <button id="loginBtn" onclick="logInOut()">로그인</button>
-            <a class="nav-link" href="/write"> 글쓰기 </a>
+            <button onclick="writePage()">글쓰기</button>
           </li>
         </ul>
       </div>

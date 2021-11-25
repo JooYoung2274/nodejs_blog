@@ -44,27 +44,12 @@
 
     <link href="/static/mystyle.css" rel="stylesheet" />
     <title>JOO 블로그</title>
-
+    <script src="/static/loginOut.js"></script>
     <script>
       $(document).ready(function () {
         get_lists();
         loginBtn();
       });
-
-      function loginBtn() {
-        if (localStorage.getItem("token")) {
-          $("#loginBtn").text("로그아웃");
-        }
-      }
-
-      function logInOut() {
-        if (localStorage.getItem("token")) {
-          localStorage.clear();
-          location.reload();
-        } else {
-          window.location.href = "/login";
-        }
-      }
 
       function writePage() {
         if (localStorage.getItem("token")) {
