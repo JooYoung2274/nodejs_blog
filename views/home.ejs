@@ -66,6 +66,14 @@
         }
       }
 
+      function writePage() {
+        if (localStorage.getItem("token")) {
+          window.location.href = "/write";
+        } else {
+          alert("로그인하세요!");
+        }
+      }
+
       function get_lists() {
         $.ajax({
           type: "GET",
@@ -136,7 +144,7 @@
         <ul class="navbar-nav mr-auto text-right">
           <li class="nav-item" id="link-cart">
             <button id="loginBtn" onclick="logInOut()">로그인</button>
-            <a class="nav-link" href="/write"> 글쓰기 </a>
+            <button onclick="writePage()">글쓰기</button>
           </li>
         </ul>
       </div>

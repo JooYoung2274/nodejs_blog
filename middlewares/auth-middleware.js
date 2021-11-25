@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../schemas/user");
 
 module.exports = (req, res, next) => {
-  console.log("auth middleware!!");
+  console.log(req.headers);
   const { authorization } = req.headers;
   const [tokenType, tokenValue] = authorization.split(" ");
 
@@ -15,14 +15,11 @@ module.exports = (req, res, next) => {
 
   try {
     const { userId } = jwt.verify(tokenValue, "182436aajo");
-
+    console.log(User);
     User.findById(userId)
       .exec()
       .then((user) => {
-        console.log("1console", user);
         res.locals.user = user;
-        console.log("2console", res.locals);
-
         next();
       });
   } catch (error) {

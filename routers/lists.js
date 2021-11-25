@@ -24,13 +24,10 @@ router.post("/write", authMiddleware, async (req, res) => {
   const name = user["name"];
   const recentList = await Lists.find().sort("-postId").limit(1);
   let postId = 1;
-
   if (recentList.length !== 0) {
     postId = recentList[0]["postId"] + 1;
   }
-
   const { title, value, password } = req.body;
-
   const writeDay = new Date().format("yyyy-MM-dd a/p hh:mm:ss");
   await Lists.create({ postId, title, name, value, password, writeDay });
   res.send({ result: "success" });
@@ -38,7 +35,6 @@ router.post("/write", authMiddleware, async (req, res) => {
 
 router.post("/edit", authMiddleware, async (req, res) => {
   const { user } = res.locals;
-  console.log(user);
   let { postId, title, value, password } = req.body;
   let pass = await Lists.findOne({ postId });
   password = parseInt(password, 10);
@@ -51,6 +47,24 @@ router.post("/edit", authMiddleware, async (req, res) => {
     res.send({ result: "잘못된 접근입니다." });
   } else {
     res.send({ result: "잘못된 접근입니다." });
+  }
+});
+
+router.get("/editCheck/:editPostId", authMiddleware, async (req, res) => {
+  try {
+    const { user } = res.locals;
+    console.log(user);
+    const { editPostId } = req.params;
+    let name = user.name;
+    const list = await Lists.findOne({ editPostId });
+    if (name === user.name) {
+      res.status(200).send({});
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({
+      errorMessage: "입력된 정보가 틀립니다",
+    });
   }
 });
 
@@ -76,13 +90,19 @@ router.get("/detail/:postId", async (req, res, next) => {
   }
 });
 
-router.delete("/delete/:postId", async (req, res) => {
+router.delete("/delete/:postId", authMiddleware, async (req, res) => {
+  const { user } = res.locals;
+  const name = user.name;
   const { postId } = req.params;
   const { password } = req.body;
 
   const deleteList = await Lists.findOne({ postId });
-  if (parseInt(password, 10) === deleteList.password) {
+  if (
+    parseInt(password, 10) === deleteList.password &&
+    name === deleteList.name
+  ) {
     await Lists.deleteOne({ postId });
+    await Comments.deleteMany({ postId });
     res.send({ result: "success" });
   } else {
     res.send({ result: "비밀번호가 틀렸습니다.. " });
@@ -146,7 +166,7 @@ router.post("/save/comment", async (req, res) => {
 
 ////////////////////////////////////////////
 // 회원가입
-///////////////////////////////////////////
+////////////////////////////////////////////
 const registerSchema = Joi.object({
   name: Joi.string().alphanum().min(3).max(30).required(),
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{4,30}$")).required(),

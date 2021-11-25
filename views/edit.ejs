@@ -109,6 +109,9 @@
           type: "DELETE",
           url: `/api/delete/${postId}`,
           data: { password: password },
+          headers: {
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
           error: function (xhr, status, error) {
             if (status == 404) {
               alert("밤새자 주영아");
