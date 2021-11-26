@@ -3,21 +3,18 @@ const Users = require("../schemas/user");
 const router = express.Router();
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
-const authMiddleware = require("../middlewares/auth-middleware");
 
-////////////////////////////////////////////
-// 회원가입
-////////////////////////////////////////////
+// 회원가입 유효성 검사 (Joi)
 const registerSchema = Joi.object({
   name: Joi.string().alphanum().min(3).max(30).required(),
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{4,30}$")).required(),
   confirmPassword: Joi.string().required(),
 });
+// 회원가입 API
 router.post("/users", async (req, res) => {
   try {
     const { name, password, confirmPassword } =
       await registerSchema.validateAsync(req.body);
-
     const passArr = password.split(name); //password와 nickname 확인하기 위해서 배열화
     if (password !== confirmPassword || passArr.length !== 1) {
       //안겹치면 무조건 길이는 1개
@@ -26,7 +23,6 @@ router.post("/users", async (req, res) => {
       });
       return;
     }
-
     const isUser = await Users.find({ name });
     if (isUser.length) {
       res.status(400).send({
@@ -45,25 +41,27 @@ router.post("/users", async (req, res) => {
   }
 });
 
+// 로그인 API
+// 완료시 token 발행 후 클라이언트로 보내기
 router.post("/auth", async (req, res) => {
   const { name, password } = req.body;
   const isUser = await Users.findOne({ name, password });
-
   if (!isUser) {
     res.status(400).send({
       errorMessage: "닉네임 또는 패스워드를 확인해주세요",
     });
     return;
   }
-  const token = jwt.sign({ userId: isUser.userId }, "182436aajo");
-  console.log(token);
+  const token = jwt.sign({ userId: isUser.userId }, "182436aajo"); // 토큰 발급. 좀 더 보안적으로 신경 쓸 수 있는 방법 찾아보기
   res.send({ token });
 });
 
-router.get("/users/me", authMiddleware, async (req, res) => {
-  const { user } = res.locals;
+// 사용자 인증 API
+//사용을 안하고 있음
+// router.get("/users/me", authMiddleware, async (req, res) => {
+//   const { user } = res.locals;
 
-  res.send({ user });
-});
+//   res.send({ user });
+// });
 
 module.exports = router;

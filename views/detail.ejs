@@ -44,8 +44,12 @@
 
     <link href="/static/mystyle.css" rel="stylesheet" />
     <title>JOO 블로그</title>
+
+    <!-- 로그인 로그아웃 상태 함수 따로 분리 -->
     <script src="/static/loginOut.js"></script>
     <script>
+      // Query parameter 값을 받아와서 postId에 할당.
+      // 이걸 Path variable로 바꾸는 고민해볼것.
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
       const postId = urlParams.get("postId");
@@ -56,36 +60,39 @@
         get_comment();
       });
 
+      // 함수가 이렇게 많아도 되는건가..?
+
       function get_detail() {
         // 주소에 저장해둔 postId값 가져와라
-        $.ajax({
-          type: "GET",
-          url: `/api/detail/${postId}`,
-          data: {},
-          error: function (xhr, status, error) {
-            if (status == 404) {
-              alert("왜 404??ㅠㅠ 밤새자 주영아");
-            }
-          },
-          success: function (response) {
-            let lists = response["list"];
-            let title = lists["title"];
-            let name = lists["name"];
-            let writeDay = lists["writeDay"];
-            let value = lists["value"];
-            let postId = lists["postId"];
+        if (typeof postId === Number) {
+          $.ajax({
+            type: "GET",
+            url: `/api/detail/${postId}`,
+            data: {},
+            error: function (xhr, status, error) {
+              if (status == 404) {
+                alert("밤새자 주영아");
+              }
+            },
+            success: function (response) {
+              let lists = response["list"];
+              let title = lists["title"];
+              let name = lists["name"];
+              let writeDay = lists["writeDay"];
+              let value = lists["value"];
+              let postId = lists["postId"];
 
-            let temp_html = `<li class="list-group-item">
+              let temp_html = `<li class="list-group-item">
                                     <h4>${title}</h4>
                                     <p>내용 : ${value}</p>
                                     <p>작성 날짜 : ${writeDay}</p>
                                     <p>작성자 : ${name}</p>
                                     <button onclick="editPage('${postId}')"> 수정하기 </button>
                                   </li>`;
-
-            $("#tempId").append(temp_html);
-          },
-        });
+              $("#tempId").append(temp_html);
+            },
+          });
+        }
       }
 
       function editPage(editPostId) {
@@ -145,23 +152,24 @@
 
       function get_comment() {
         // 주소에 저장해둔 postId값 가져와라
-        $.ajax({
-          type: "GET",
-          url: `/api/comment/${postId}`,
-          data: {},
-          error: function (xhr, status, error) {
-            if (status == 404) {
-              alert("왜 404??ㅠㅠ 밤새자 주영아");
-            }
-          },
-          success: function (response) {
-            let arr = response["result"];
-            for (let i = arr.length - 1; i >= 0; i--) {
-              let name = response["result"][i]["name"];
-              let comment = response["result"][i]["comment"];
-              let commentId = response["result"][i]["commentId"];
+        if (typeof postId === Number) {
+          $.ajax({
+            type: "GET",
+            url: `/api/comment/${postId}`,
+            data: {},
+            error: function (xhr, status, error) {
+              if (status == 404) {
+                alert("왜 404??ㅠㅠ 밤새자 주영아");
+              }
+            },
+            success: function (response) {
+              let arr = response["result"];
+              for (let i = arr.length - 1; i >= 0; i--) {
+                let name = response["result"][i]["name"];
+                let comment = response["result"][i]["comment"];
+                let commentId = response["result"][i]["commentId"];
 
-              let temp_html = `<tr>
+                let temp_html = `<tr>
                                     <td scope="col">${name}</td>
                                     <td scope="col" id="hideBox${commentId}">${comment}</td>
                                     <td colspan="2" style="display: none" id="editBox${commentId}">
@@ -178,7 +186,7 @@
                                           <button
                                             class="btn btn-outline-secondary"
                                             type="button"
-                                            onclick="editCommentConfirm('${postId}', '${commentId}')"
+                                            onclick="editCommentConfirm('${commentId}')"
                                           >
                                             저장
                                           </button>
@@ -187,14 +195,16 @@
                                     </td>
                                     <td id="btns${commentId}">
                                       <button id="editBtn" onclick="editComment('${commentId}')">수정</button>
-                                      <button id="deleteBtn" onclick="deleteComment('${name}', '${postId}', '${commentId}')">삭제</button>
+                                      <button id="deleteBtn" onclick="deleteComment('${name}', '${commentId}')">삭제</button>
                                       </td>
                                   </tr>`;
-              $("#commentTableBody").append(temp_html);
-            }
-          },
-        });
+                $("#commentTableBody").append(temp_html);
+              }
+            },
+          });
+        }
       }
+
       function writePage() {
         if (localStorage.getItem("token")) {
           window.location.href = "/write";
@@ -202,8 +212,8 @@
           alert("로그인하세요!");
         }
       }
+
       function editComment(c) {
-        console.log(c);
         $.ajax({
           type: "GET",
           url: `/api/edit/comment/${c}`,
@@ -223,15 +233,14 @@
         });
       }
 
-      // postId는 필요없어보이는데..? 일단 냅두고 나중에 수정해보기
-      function deleteComment(a, b, c) {
+      // Path variable으로 보낼 필요가 있나? 그냥 data에 전부 담아서 보내도 됐을듯..
+      function deleteComment(name, commentId) {
         if (confirm("정말로 삭제하시겠습니까?") === true) {
           $.ajax({
             type: "DELETE",
-            url: `/api/delete/comment/${c}`,
+            url: `/api/delete/comment/${commentId}`,
             data: {
-              name: a,
-              postId: b,
+              name: name,
             },
             headers: {
               authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -249,14 +258,13 @@
         }
       }
 
-      function editCommentConfirm(postId, commentId) {
+      function editCommentConfirm(commentId) {
         const comment = $(`#commentInput${commentId}`).val();
         if (comment !== "") {
           $.ajax({
             type: "POST",
             url: "/api/save/comment",
             data: {
-              postId: postId,
               commentId: commentId,
               comment: comment,
             },
@@ -354,39 +362,39 @@
         </tr>
       </tbody>
     </table>
-  </body>
-  <div
-    class="modal text-left"
-    id="alertModal"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="alertModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="alertModalLabel">알림</h5>
-          <button
-            type="button"
-            class="close"
-            data-dismiss="modal"
-            aria-label="Close"
-          >
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body" id="alertText"></div>
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-outline-sparta"
-            data-dismiss="modal"
-          >
-            확인
-          </button>
+    <div
+      class="modal text-left"
+      id="alertModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="alertModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="alertModalLabel">알림</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="alertText"></div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-outline-sparta"
+              data-dismiss="modal"
+            >
+              확인
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </body>
 </html>

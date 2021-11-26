@@ -46,6 +46,17 @@
     <title>JOO 블로그</title>
 
     <script>
+      $(document).ready(function () {
+        writePage();
+      });
+
+      function writePage() {
+        if (!localStorage.getItem("token")) {
+          alert("로그인하세요!");
+          window.location.href = "/";
+        }
+      }
+
       function writeList() {
         let val = $("#writeValue").val();
         let title = $("#writeTitle").val();

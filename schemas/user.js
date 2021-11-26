@@ -6,6 +6,7 @@ const UsersSchema = new Schema({
   password: String,
 });
 
+// userId라는 이름으로 _id 사용
 UsersSchema.virtual("userId").get(function () {
   return this._id.toHexString();
 });

@@ -46,13 +46,23 @@
     <title>JOO 블로그</title>
 
     <script>
+      // Query parameter 값을 받아와서 postId에 할당.
+      // 이걸 Path variable로 바꾸는 고민해볼것.
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
       const postId = urlParams.get("postId");
 
       $(document).ready(function () {
         clickList();
+        writePage();
       });
+
+      function writePage() {
+        if (!localStorage.getItem("token")) {
+          alert("로그인하세요!");
+          window.location.href = "/";
+        }
+      }
 
       function clickList() {
         $.ajax({
@@ -65,7 +75,6 @@
             }
           },
           success: function (response) {
-            console.log(response["list"]);
             $("#writeTitle").val(response["list"]["title"]);
             $("#writeValue").val(response["list"]["value"]);
           },

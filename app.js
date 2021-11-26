@@ -2,9 +2,9 @@ const express = require("express");
 const app = express();
 const port = 3000;
 const connect = require("./schemas");
-const lists = require("./routers/lists");
-const user = require("./routers/user");
-const comment = require("./routers/comment");
+const lists = require("./routers/lists"); //router 분리
+const user = require("./routers/user"); //router 분리
+const comment = require("./routers/comment"); //router 분리
 
 //미들웨어 순서에 대해서 공부하기. 공식문서 ㄱㄱ
 app.use(express.urlencoded({ extended: false }));
@@ -18,6 +18,7 @@ connect();
 app.set("views", __dirname + "/views");
 app.set("view engine", "ejs");
 
+//router middleware
 app.use("/api", [lists]);
 app.use("/api", [user]);
 app.use("/api", [comment]);
