@@ -64,35 +64,34 @@
 
       function get_detail() {
         // 주소에 저장해둔 postId값 가져와라
-        if (typeof postId === Number) {
-          $.ajax({
-            type: "GET",
-            url: `/api/detail/${postId}`,
-            data: {},
-            error: function (xhr, status, error) {
-              if (status == 404) {
-                alert("밤새자 주영아");
-              }
-            },
-            success: function (response) {
-              let lists = response["list"];
-              let title = lists["title"];
-              let name = lists["name"];
-              let writeDay = lists["writeDay"];
-              let value = lists["value"];
-              let postId = lists["postId"];
 
-              let temp_html = `<li class="list-group-item">
+        $.ajax({
+          type: "GET",
+          url: `/api/detail/${postId}`,
+          data: {},
+          error: function (xhr, status, error) {
+            if (status == 404) {
+              alert("밤새자 주영아");
+            }
+          },
+          success: function (response) {
+            let lists = response["list"];
+            let title = lists["title"];
+            let name = lists["name"];
+            let writeDay = lists["writeDay"];
+            let value = lists["value"];
+            let postId = lists["postId"];
+
+            let temp_html = `<li class="list-group-item">
                                     <h4>${title}</h4>
                                     <p>내용 : ${value}</p>
                                     <p>작성 날짜 : ${writeDay}</p>
                                     <p>작성자 : ${name}</p>
                                     <button onclick="editPage('${postId}')"> 수정하기 </button>
                                   </li>`;
-              $("#tempId").append(temp_html);
-            },
-          });
-        }
+            $("#tempId").append(temp_html);
+          },
+        });
       }
 
       function editPage(editPostId) {
@@ -152,24 +151,24 @@
 
       function get_comment() {
         // 주소에 저장해둔 postId값 가져와라
-        if (typeof postId === Number) {
-          $.ajax({
-            type: "GET",
-            url: `/api/comment/${postId}`,
-            data: {},
-            error: function (xhr, status, error) {
-              if (status == 404) {
-                alert("왜 404??ㅠㅠ 밤새자 주영아");
-              }
-            },
-            success: function (response) {
-              let arr = response["result"];
-              for (let i = arr.length - 1; i >= 0; i--) {
-                let name = response["result"][i]["name"];
-                let comment = response["result"][i]["comment"];
-                let commentId = response["result"][i]["commentId"];
 
-                let temp_html = `<tr>
+        $.ajax({
+          type: "GET",
+          url: `/api/comment/${postId}`,
+          data: {},
+          error: function (xhr, status, error) {
+            if (status == 404) {
+              alert("왜 404??ㅠㅠ 밤새자 주영아");
+            }
+          },
+          success: function (response) {
+            let arr = response["result"];
+            for (let i = arr.length - 1; i >= 0; i--) {
+              let name = response["result"][i]["name"];
+              let comment = response["result"][i]["comment"];
+              let commentId = response["result"][i]["commentId"];
+
+              let temp_html = `<tr>
                                     <td scope="col">${name}</td>
                                     <td scope="col" id="hideBox${commentId}">${comment}</td>
                                     <td colspan="2" style="display: none" id="editBox${commentId}">
@@ -198,11 +197,10 @@
                                       <button id="deleteBtn" onclick="deleteComment('${name}', '${commentId}')">삭제</button>
                                       </td>
                                   </tr>`;
-                $("#commentTableBody").append(temp_html);
-              }
-            },
-          });
-        }
+              $("#commentTableBody").append(temp_html);
+            }
+          },
+        });
       }
 
       function writePage() {

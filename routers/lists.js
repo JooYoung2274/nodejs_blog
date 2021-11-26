@@ -85,6 +85,7 @@ router.get("/edit/:postId", async (req, res, next) => {
 router.get("/detail/:postId", async (req, res, next) => {
   try {
     const { postId } = req.params;
+    console.log(postId);
     const list = await Lists.findOne({ postId });
     res.json({ list: list });
   } catch (err) {
