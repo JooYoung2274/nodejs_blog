@@ -7,22 +7,10 @@ const user = require("./routers/user"); //router 분리
 const comment = require("./routers/comment"); //router 분리
 
 // npm으로 설치해준 것들 불러오기
-const swaggerUI = require("swagger-ui-express");
-const swaggereJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
+const swaggerFile = require("./swagger-output");
 
-const options = {
-  swaggerDefinition: {
-    info: {
-      title: "NodeJS_blog API",
-      version: "1.0.0",
-    },
-  },
-  apis: ["./routers/*.js"],
-};
-
-const specs = swaggereJsdoc(options);
-console.log(specs);
-app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 //미들웨어 순서에 대해서 공부하기. 공식문서 ㄱㄱ
 app.use(express.urlencoded({ extended: false }));
