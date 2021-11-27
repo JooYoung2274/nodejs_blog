@@ -6,6 +6,24 @@ const lists = require("./routers/lists"); //router 분리
 const user = require("./routers/user"); //router 분리
 const comment = require("./routers/comment"); //router 분리
 
+// npm으로 설치해준 것들 불러오기
+const swaggerUI = require("swagger-ui-express");
+const swaggereJsdoc = require("swagger-jsdoc");
+
+const options = {
+  swaggerDefinition: {
+    info: {
+      title: "NodeJS_blog API",
+      version: "1.0.0",
+    },
+  },
+  apis: ["app.js"],
+};
+
+const specs = swaggereJsdoc(options);
+console.log(specs);
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(specs));
+
 //미들웨어 순서에 대해서 공부하기. 공식문서 ㄱㄱ
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -17,6 +35,38 @@ connect();
 //ejs사용
 app.set("views", __dirname + "/views");
 app.set("view engine", "ejs");
+
+/**
+ *  @swagger
+ *  /register:
+ *    post:
+ *      description: resgister
+ *      produces:
+ *        - application/json
+ *      parameters:
+ *        - in: formData
+ *          name: name
+ *          required: true
+ *          schema:
+ *            type: string
+ *            description: nickname
+ *        - in: formData
+ *          name: password
+ *          required: true
+ *          schema:
+ *            type: string
+ *            description: password
+ *        - in: formData
+ *          name: confirmPassword
+ *          required: true
+ *          schema:
+ *            type: string
+ *            description: confirmPassword
+ *      responses:
+ *        201:
+ *          description: Success
+ *
+ */
 
 //router middleware
 app.use("/api", [lists]);

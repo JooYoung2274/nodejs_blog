@@ -1,0 +1,30 @@
+paths:
+  /register:
+    post:
+      tags:
+        - sing_up
+      description: 회원가입
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: name
+          required: true
+          schema:
+            type: string
+            description: nickname
+        - in: body
+          name: password
+          required: true
+          schema:
+            type: string
+            description: password
+        - in: body
+          name: confirmPassword
+          required: true
+          schema:
+            type: string
+            description: confirmPassword
+      responses:
+        201:
+          description: db저장 성공
