@@ -17,7 +17,7 @@ const options = {
       version: "1.0.0",
     },
   },
-  apis: ["app.js"],
+  apis: ["./routers/*.js"],
 };
 
 const specs = swaggereJsdoc(options);
@@ -35,38 +35,6 @@ connect();
 //ejs사용
 app.set("views", __dirname + "/views");
 app.set("view engine", "ejs");
-
-/**
- *  @swagger
- *  /register:
- *    post:
- *      description: resgister
- *      produces:
- *        - application/json
- *      parameters:
- *        - in: formData
- *          name: name
- *          required: true
- *          schema:
- *            type: string
- *            description: nickname
- *        - in: formData
- *          name: password
- *          required: true
- *          schema:
- *            type: string
- *            description: password
- *        - in: formData
- *          name: confirmPassword
- *          required: true
- *          schema:
- *            type: string
- *            description: confirmPassword
- *      responses:
- *        201:
- *          description: Success
- *
- */
 
 //router middleware
 app.use("/api", [lists]);

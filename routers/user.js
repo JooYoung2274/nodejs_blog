@@ -4,6 +4,38 @@ const router = express.Router();
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 
+/**
+ *  @swagger
+ *  /api/users:
+ *    post:
+ *      description: resgister
+ *      produces:
+ *        - application/json
+ *      parameters:
+ *        - in: formData
+ *          name: name
+ *          required: true
+ *          schema:
+ *            type: string
+ *            description: nickname
+ *        - in: formData
+ *          name: password
+ *          required: true
+ *          schema:
+ *            type: string
+ *            description: password
+ *        - in: formData
+ *          name: confirmPassword
+ *          required: true
+ *          schema:
+ *            type: string
+ *            description: confirmPassword
+ *      responses:
+ *        201:
+ *          description: Success
+ *
+ */
+
 // 회원가입 유효성 검사 (Joi)
 const registerSchema = Joi.object({
   name: Joi.string().alphanum().min(3).max(30).required(),
