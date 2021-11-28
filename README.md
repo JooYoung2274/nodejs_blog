@@ -15,9 +15,17 @@
 
 - 배포전 주석 작업
 
-### 할 것
+### 21.11.27
 
-- Swagger 적용
+- Swagger 적용테스트
+- 주석 작업 마무리
+
+### 21.11.29
+
+- Swagger 마무리
+
+### 할 일
+
 - RESTful API 적용
 - password 암호화
 - query parameter -> path variable로 변경
