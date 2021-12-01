@@ -15,7 +15,7 @@ const listsSchema = new Schema({
     required: true,
   },
   password: {
-    type: Number,
+    type: String,
     required: true,
   },
   writeDay: {
