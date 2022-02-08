@@ -23,9 +23,3 @@
 ### 21.11.29
 
 - Swagger 마무리
-
-### 할 일
-
-- RESTful API 적용
-- password 암호화
-- query parameter -> path variable로 변경
